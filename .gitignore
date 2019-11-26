@@ -1,0 +1,10 @@
+# Logs
+logs
+*.log
+*.lock
+
+test.php
+index.php
+
+.vscode
+.idea
