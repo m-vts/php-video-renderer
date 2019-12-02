@@ -68,8 +68,11 @@
                 if(!isset($element['config'])) $element['config'] = [];
                 if(!isset($element['animations'])) $element['animations'] = [];
 
-                $config['render_start'] = !isset($config['render_start']) ? 1 : $this->formatFramesCount($config['render_start']);
-                $config['render_end'] = !isset($config['render_end']) ? 1 : $this->formatFramesCount($config['render_end']);
+                if(!isset($config['render_start'])) $config['render_start'] = 1;
+                else $config['render_start'] = $this->formatFramesCount($config['render_start']);
+
+                if(!isset($config['render_end'])) $config['render_end'] = $this->frames_count;
+                else $config['render_end'] = $this->formatFramesCount($config['render_end']);
 
                 if($element['type'] == 'text') {
                     $config['size'] = isset($config['size']) ? $this->formatPixelsSize($config['size']) : 10;
@@ -79,6 +82,10 @@
                         if($config['format'] == 'jpeg') $resource = imagecreatefromjpeg($config['src']);
                         elseif($config['format'] == 'bmp') $resource = imagecreatefrombmp($config['src']);
                         else $resource = imagecreatefrompng($config['src']);
+
+                        if($config['opacity'] < 1) {
+                            imagefilter($resource, IMG_FILTER_COLORIZE, 255, 255, 255, round($this->formatAlphaColor($config['opacity'])));
+                        }
 
                         $config['resource'] = $resource;
                     }
@@ -146,7 +153,7 @@
 
                 if($config['render_start'] > $frame_id) continue;
                 if($config['render_end'] < $frame_id) continue;
-                
+
                 if($element['type'] == 'text') {
                     $data = $this->getRenderElementData($frame_id, $element);
 
@@ -165,10 +172,6 @@
                     $data = $this->getRenderElementData($frame_id, $element);
 
                     /*
-                    if($data['color']['a'] != 127) {
-                        imagefilter($config['resource'], IMG_FILTER_COLORIZE, 255, 255, 255, $data['color']['a']);
-                    }
-
                     if($data['rotate'] != 0) {
                         $config['resource'] = imagerotate($im, $data['rotate'], imagecolorallocatealpha($config['resource'], 0, 0, 0, 0));
                     }*/
@@ -317,7 +320,7 @@
         static function countEaseOut($time, $start, $step, $from) {
             return -$step * $time * ($time - 2) * $from + $start;
         }
-        static function countEaseInOut($t) {
-            return $t < 0.5 ? 2*$t*$t : -1+(4-2*$t)*$t;
+        static function countEaseInOut($time) {
+            return $time < 0.5 ? 2 * $time * $time : -1 + (4 - 2 * $time) * $time;
         }
     }
