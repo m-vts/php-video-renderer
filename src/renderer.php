@@ -9,6 +9,7 @@
 
         private $elements = [];
         private $temp_path = '';
+        private $video_id = '';
         private $result_path = '';
         private $result_file = 'output.mp4';
 
@@ -36,6 +37,8 @@
             if($result_file !== null) $this->result_path = $result_path;
             if($result_file !== null) $this->result_file = $result_file;
 
+            $this->video_id = md5('video'.rand(0, 1000000));
+
             $this->formatElements();
             $this->clearTempDirectory();
 
@@ -48,11 +51,11 @@
                 $this->renderElements($im, $frame_id);
                 $frame_name = $this->formatFrameIdentifier($frame_id);
 
-                imagepng($im, $this->temp_path."/frame{$frame_name}.png");
+                imagepng($im, $this->temp_path."/frame{$frame_name}-{$this->video_id}.png");
                 imagedestroy($im);
             }
 
-            exec("ffmpeg -framerate {$this->fps} -pattern_type glob -i '{$this->temp_path}/*.png' -c:v libx264 -pix_fmt yuv420p '{$this->result_path}/{$this->result_file}'");
+            exec("ffmpeg -framerate {$this->fps} -pattern_type glob -i '{$this->temp_path}/*{$this->video_id}.png' -c:v libx264 -pix_fmt yuv420p '{$this->result_path}/{$this->result_file}'");
 
             $this->clearTempDirectory();
         }
@@ -64,6 +67,9 @@
 
                 if(!isset($element['config'])) $element['config'] = [];
                 if(!isset($element['animations'])) $element['animations'] = [];
+
+                $config['render_start'] = !isset($config['render_start']) ? 1 : $this->formatFramesCount($config['render_start']);
+                $config['render_end'] = !isset($config['render_end']) ? 1 : $this->formatFramesCount($config['render_end']);
 
                 if($element['type'] == 'text') {
                     $config['size'] = isset($config['size']) ? $this->formatPixelsSize($config['size']) : 10;
@@ -138,6 +144,9 @@
             foreach ($this->elements as &$element) {
                 $config = $element['config'];
 
+                if($config['render_start'] > $frame_id) continue;
+                if($config['render_end'] < $frame_id) continue;
+                
                 if($element['type'] == 'text') {
                     $data = $this->getRenderElementData($frame_id, $element);
 
