@@ -170,15 +170,15 @@
                 }
                 elseif($element['type'] == 'image') {
                     $data = $this->getRenderElementData($frame_id, $element);
-
-                    /*
+                    $resource = $config['resource'];
+                    
                     if($data['rotate'] != 0) {
-                        $config['resource'] = imagerotate($im, $data['rotate'], imagecolorallocatealpha($config['resource'], 0, 0, 0, 0));
-                    }*/
+                        $resource = imagerotate($resource, $data['rotate'], imagecolorallocatealpha($resource, 255, 255, 255, 127));
+                    }
 
                     imagecopyresampled(
                         $im,
-                        $config['resource'],
+                        $resource,
                         $data['x'],
                         $data['y'],
                         0,
